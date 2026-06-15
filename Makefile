@@ -59,7 +59,7 @@ test: dirs
 	./$(BUILD_DIR)/test_gaussian
 	@echo "--- Running NMS tests ---"
 	$(HOST_CXX) $(HOST_FLAGS) -I include -I$(GTEST_INC) \
-		tests/test_nms.cpp src/nms.cpp src/gaussian.cpp src/sobel.cpp \
+		tests/test_nms.cpp src/nms.cpp src/sobel.cpp src/gaussian.cpp \
 		-L$(GTEST_LIB) -lgtest -lgtest_main -lpthread \
 		-o $(BUILD_DIR)/test_nms
 	./$(BUILD_DIR)/test_nms

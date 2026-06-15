@@ -1,0 +1,10 @@
+*.o
+*.elf
+*.a
+build/
+bin/
+*.raw
+test_output/
+.vscode/
+.DS_Store
+__pycache__/

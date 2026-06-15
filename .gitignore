@@ -9,7 +9,4 @@ test_output/
 .DS_Store
 __pycache__/
 
-# Generated PNG visualization files
-*.png
-
 generate_test

@@ -64,6 +64,32 @@ test: dirs
 		-o $(BUILD_DIR)/test_nms
 	./$(BUILD_DIR)/test_nms
 
+# Compiler sweep benchmark
+benchmark: dirs
+	@echo "--- O0 ---"
+	$(HOST_CXX) -std=c++17 -O0 -I include \
+		benchmarks/benchmark.cpp src/gaussian.cpp \
+		-o $(BUILD_DIR)/benchmark_O0
+	./$(BUILD_DIR)/benchmark_O0
+
+	@echo "--- O2 ---"
+	$(HOST_CXX) -std=c++17 -O2 -I include \
+		benchmarks/benchmark.cpp src/gaussian.cpp \
+		-o $(BUILD_DIR)/benchmark_O2
+	./$(BUILD_DIR)/benchmark_O2
+
+	@echo "--- O3 ---"
+	$(HOST_CXX) -std=c++17 -O3 -I include \
+		benchmarks/benchmark.cpp src/gaussian.cpp \
+		-o $(BUILD_DIR)/benchmark_O3
+	./$(BUILD_DIR)/benchmark_O3
+
+	@echo "--- Ofast ---"
+	$(HOST_CXX) -std=c++17 -Ofast -I include \
+		benchmarks/benchmark.cpp src/gaussian.cpp \
+		-o $(BUILD_DIR)/benchmark_Ofast
+	./$(BUILD_DIR)/benchmark_Ofast
+
 # Clean
 clean:
 	rm -rf $(BUILD_DIR)

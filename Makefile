@@ -26,6 +26,10 @@ QEMU_FLAGS = -cpu rv64,v=true,vlen=$(VLEN)
 # --- Targets ---
 RV_BIN     = $(BUILD_DIR)/canny_rv
 
+# --- GoogleTest ---
+GTEST_INC  = /usr/local/include
+GTEST_LIB  = /usr/local/lib
+
 # ============================================================
 
 .PHONY: all canny_rv run clean test dirs
@@ -36,7 +40,7 @@ all: dirs canny_rv
 dirs:
 	mkdir -p $(BUILD_DIR)
 
-# Cross-compile for RISC-V (placeholder until src files exist)
+# Cross-compile for RISC-V
 canny_rv: dirs
 	@echo "Cross-compiling for RISC-V (rv64gcv, VLEN=$(VLEN))..."
 	@echo "No source files yet - add them to src/"
@@ -46,18 +50,20 @@ run: canny_rv
 	$(QEMU) $(QEMU_FLAGS) $(RV_BIN)
 
 # Host-side GoogleTest
-HOST_TEST_SRC = tests/test_gaussian.cpp src/gaussian.cpp
-HOST_TEST_BIN = $(BUILD_DIR)/test_gaussian
-
 test: dirs
-	$(HOST_CXX) $(HOST_FLAGS) -I include \
-		$(HOST_TEST_SRC) \
-		-L/usr/local/lib -lgtest -lgtest_main -lpthread \
-		-I/usr/local/include \
-		-o $(HOST_TEST_BIN)
-	./$(HOST_TEST_BIN)
+	@echo "--- Running Gaussian tests ---"
+	$(HOST_CXX) $(HOST_FLAGS) -I include -I$(GTEST_INC) \
+		tests/test_gaussian.cpp src/gaussian.cpp \
+		-L$(GTEST_LIB) -lgtest -lgtest_main -lpthread \
+		-o $(BUILD_DIR)/test_gaussian
+	./$(BUILD_DIR)/test_gaussian
+	@echo "--- Running NMS tests ---"
+	$(HOST_CXX) $(HOST_FLAGS) -I include -I$(GTEST_INC) \
+		tests/test_nms.cpp src/nms.cpp src/gaussian.cpp src/sobel.cpp \
+		-L$(GTEST_LIB) -lgtest -lgtest_main -lpthread \
+		-o $(BUILD_DIR)/test_nms
+	./$(BUILD_DIR)/test_nms
 
 # Clean
 clean:
 	rm -rf $(BUILD_DIR)
-

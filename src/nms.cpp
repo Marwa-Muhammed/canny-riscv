@@ -51,11 +51,13 @@ void nonMaxSuppression(const TMag* magnitude,
                     n2 = magnitude[(y + 1) * width + x];
                     break;
                 case 3:
-                default:
                     n1 = magnitude[(y - 1) * width + (x - 1)];
                     n2 = magnitude[(y + 1) * width + (x + 1)];
                     break;
-            }
+
+                   default:
+                  continue;
+             }
 
             // Keep pixel only if it is STRICTLY greater than both neighbours.
             // Using >= would keep plateaus (flat ridges) → thick edges.
@@ -79,8 +81,6 @@ void nms_u8(const uint8_t* magnitude,
 }
 
 // Explicit template instantiations (avoids linker errors)
-template void nonMaxSuppression<uint8_t,  uint8_t, uint8_t>(
-    const uint8_t*,  const uint8_t*, uint8_t*, int, int);
 
 template void nonMaxSuppression<uint16_t, uint8_t, uint8_t>(
     const uint16_t*, const uint8_t*, uint8_t*, int, int);

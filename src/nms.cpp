@@ -50,13 +50,13 @@ void nonMaxSuppression(const TMag* magnitude,
                     n1 = magnitude[(y - 1) * width + x];
                     n2 = magnitude[(y + 1) * width + x];
                     break;
-                case 3:
-                    n1 = magnitude[(y - 1) * width + (x - 1)];
-                    n2 = magnitude[(y + 1) * width + (x + 1)];
-                    break;
-
-                   default:
-                  continue;
+               case 3:
+                n1 = magnitude[(y - 1) * width + (x - 1)];
+                n2 = magnitude[(y + 1) * width + (x + 1)];
+                break;
+                default:
+                 n1 = n2 = 0;
+                  break;
              }
 
             // Keep pixel only if it is STRICTLY greater than both neighbours.

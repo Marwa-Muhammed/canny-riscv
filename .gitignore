@@ -8,3 +8,8 @@ test_output/
 .vscode/
 .DS_Store
 __pycache__/
+
+# Generated PNG visualization files
+*.png
+
+generate_test

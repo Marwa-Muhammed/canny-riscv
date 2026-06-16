@@ -55,25 +55,23 @@ void direction_compute(const int16_t* src_gx,
         {
              // Vertical gradient dominant → horizontal edge
             // NMS compares TOP and BOTTOM neighbors
-            dst[i] = 90;
+            dst[i] = 2;
         }
         else
         {
-            // Diagonal cases (tie condition)
-            // in this case a sign correlation is used to assign the direction even it is 45 degrres or 135 degrees
-
-            /*
-            if both gradients move in same direction(both are positive or negative): 
-            the direction is assigned to 45 degrees
-            */ 
-            if ((gx >= 0 && gy >= 0) || (gx < 0 && gy < 0))
-                dst[i] = 45;    // rising diagonal
-            else
-            /*
-            if the two gradients move in opposite directions (one is positive and the other is negative): 
-            the direction is assigned to 135 degrees
-            */ 
-                dst[i] = 135;   // falling diagonal
+               // ax == ay exactly (rare true diagonal)
+    if (ay > ax * 0.9f)  // vertical
+        dst[i] = 2;
+    else if (ax > ay * 0.9f)  // horizontal
+        dst[i] = 0;
+    else
+    {
+        // real diagonal 
+        if ((gx >= 0 && gy >= 0) || (gx < 0 && gy < 0))
+            dst[i] = 1;  // 45°
+        else
+            dst[i] = 3;  // 135°
+    }
         }
     }
 }

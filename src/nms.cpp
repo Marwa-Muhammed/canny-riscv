@@ -62,7 +62,7 @@ void nonMaxSuppression(const TMag* magnitude,
             // Keep pixel only if it is STRICTLY greater than both neighbours.
             // Using >= would keep plateaus (flat ridges) → thick edges.
             // Strict > thins edges to 1-pixel width.
-            if (mag > n1 && mag > n2)
+            if (mag >= n1 && mag >= n2)
                 output[idx] = static_cast<TOut>(mag);
             // else output[idx] stays 0 from initialisation above
         }

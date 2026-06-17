@@ -57,6 +57,24 @@ test: dirs
 		-L$(GTEST_LIB) -lgtest -lgtest_main -lpthread \
 		-o $(BUILD_DIR)/test_gaussian
 	./$(BUILD_DIR)/test_gaussian
+	@echo "--- Running Sobel tests ---"
+	$(HOST_CXX) $(HOST_FLAGS) -I include -I$(GTEST_INC) \
+		tests/test_sobel_gtest.cpp src/sobel.cpp \
+		-L$(GTEST_LIB) -lgtest -lgtest_main -lpthread \
+		-o $(BUILD_DIR)/test_sobel
+	./$(BUILD_DIR)/test_sobel
+	@echo "--- Running Magnitude tests ---"
+	$(HOST_CXX) $(HOST_FLAGS) -I include -I$(GTEST_INC) \
+		tests/test_magnitude.cpp src/magnitude.cpp \
+		-L$(GTEST_LIB) -lgtest -lgtest_main -lpthread \
+		-o $(BUILD_DIR)/test_magnitude
+	./$(BUILD_DIR)/test_magnitude
+	@echo "--- Running Direction tests ---"
+	$(HOST_CXX) $(HOST_FLAGS) -I include -I$(GTEST_INC) \
+		tests/test_direction.cpp src/direction.cpp \
+		-L$(GTEST_LIB) -lgtest -lgtest_main -lpthread \
+		-o $(BUILD_DIR)/test_direction
+	./$(BUILD_DIR)/test_direction
 	@echo "--- Running NMS tests ---"
 	$(HOST_CXX) $(HOST_FLAGS) -I include -I$(GTEST_INC) \
 		tests/test_nms.cpp src/nms.cpp src/sobel.cpp src/gaussian.cpp \

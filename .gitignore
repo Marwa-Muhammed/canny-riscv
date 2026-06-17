@@ -12,3 +12,5 @@ __pycache__/
 generate_test
 venv/
 *.raw
+# Ignore loose png files in root
+/*.png

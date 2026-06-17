@@ -1,19 +1,18 @@
-
+import sys
 from PIL import Image, ImageDraw
 
-img = Image.new('L', (256, 256), 0)
+W = int(sys.argv[1]) if len(sys.argv) > 1 else 256
+H = int(sys.argv[2]) if len(sys.argv) > 2 else W
 
+img = Image.new('L', (W, H), 0)
 draw = ImageDraw.Draw(img)
 
-draw.rectangle([40, 40, 150, 150], outline=255, fill=100)
+# No outline — single clean edge at each boundary
+draw.rectangle([W//6, H//6, W//2, H//2],outline=205, fill=100)
+draw.ellipse([W//3, H//3, W*6//7, H*6//7], outline=255,fill=150)
+draw.line([0, H//2, W, H//2], fill=255, width=2)
+draw.line([W//2, 0, W//2, H], fill=255, width=2)
 
-draw.ellipse([100, 100, 220, 220], outline=255, fill=150)
-
-draw.line([0, 128, 256, 128], fill=255, width=2)
-
-draw.line([128, 0, 128, 256], fill=255, width=2)
-
-open('test.raw', 'wb').write(img.tobytes())
-
-print('Generated test.raw')
-
+fname = f'test_{W}x{H}.raw'
+open(fname, 'wb').write(img.tobytes())
+print(f'Generated {fname} ({W}x{H})')

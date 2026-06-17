@@ -59,6 +59,19 @@ test: dirs
 		-L$(GTEST_LIB) -lgtest -lgtest_main -lpthread \
 		-o $(BUILD_DIR)/test_nms
 	./$(BUILD_DIR)/test_nms
+	@echo "--- Running Double Threshold tests ---"
+	$(HOST_CXX) $(HOST_FLAGS) -I include -I$(GTEST_INC) \
+		tests/test_double_threshold.cpp src/double_threshold.cpp \
+		-L$(GTEST_LIB) -lgtest -lgtest_main -lpthread \
+		-o $(BUILD_DIR)/test_double_threshold
+	./$(BUILD_DIR)/test_double_threshold
+	@echo "--- Running Hysteresis tests ---"
+	$(HOST_CXX) $(HOST_FLAGS) -I include -I$(GTEST_INC) \
+		tests/test_hysteresis.cpp src/hysteresis.cpp \
+		-L$(GTEST_LIB) -lgtest -lgtest_main -lpthread \
+		-o $(BUILD_DIR)/test_hysteresis
+	./$(BUILD_DIR)/test_hysteresis
+
 # Clean
 clean:
 	rm -rf $(BUILD_DIR)

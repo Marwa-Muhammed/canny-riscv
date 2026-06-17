@@ -107,7 +107,6 @@ int main(int argc, char* argv[]) {
     uint8_t* dir = (uint8_t*)aligned_alloc(64, n);
     direction_compute(Gx, Gy, dir, width, height);
     save_image("out_direction.raw", dir, width, height);
-    printf("Top-left corner directions:\n");
     printf("Stage 2c done: Gradient direction\n");
 
     // ───────────── Stage 3: Non-Maximum Suppression (NMS) ───────────────
@@ -126,12 +125,26 @@ int main(int argc, char* argv[]) {
     // ────────────────────── Stage 4: Double Threshold ────────────────────
     // Purpose: classify edges into strong, weak, or none
     //
-    // Three categories based on two thresholds:
-    //   magnitude >= high_thresh → STRONG edge (255) → definitely an edge
-    //   magnitude >= low_thresh  → WEAK edge   (128) → maybe an edge
-    //   magnitude <  low_thresh  → NO edge     (0)   → not an edge
+    // Thresholds are computed automatically from the magnitude histogram
+    // instead of hardcoded values, so they adapt to any image/resolution:
+    //
+    //   high_thresh = max_magnitude * high_ratio  (0.2)
+    //   low_thresh  = high_thresh   * low_ratio   (0.5)
+    //
+    // This ensures consistent edge detection regardless of image contrast
     uint8_t* thresh_out = (uint8_t*)aligned_alloc(64, n);
-    double_threshold(nms_out, thresh_out, width, height,50, 150);
+
+    // Find max magnitude after NMS
+    uint8_t max_mag = 0;
+    for (int i = 0; i < n; i++)
+        if (nms_out[i] > max_mag) max_mag = nms_out[i];
+
+    uint8_t high_thresh = (uint8_t)(max_mag * 0.2f);
+    uint8_t low_thresh  = (uint8_t)(high_thresh * 0.5f);
+
+    printf("Auto threshold: high=0.2*max_mag  low=0.5*high\n");
+
+    double_threshold(nms_out, thresh_out, width, height, low_thresh, high_thresh);
     save_image("out_threshold.raw", thresh_out, width, height);
     printf("Stage 4 done: Double threshold\n");
 

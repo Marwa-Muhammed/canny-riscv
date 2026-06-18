@@ -2,9 +2,21 @@
 #include "nms.h"
 #include <vector>
 
-// ── Test 1: Uniform magnitude → all output zeros ──────────────────────────
-// Rationale: no pixel is STRICTLY greater than its neighbours → all suppressed
-TEST(NMSTest, UniformMagnitudeProducesAllZeros) {
+// ── Test 1: Uniform magnitude → interior pixels survive ───────────────────
+// Rationale (UPDATED): NMS now compares with >= instead of strict >.
+// A pixel that is equal to its neighbours along the gradient direction is
+// treated as a local maximum (tie) and is KEPT, not suppressed. On a fully
+// uniform magnitude image, every interior pixel equals all its neighbours,
+// so every interior pixel survives. Border pixels still suppress to 0,
+// since that's caused by boundary/zero-padding handling, not by the
+// strict-vs-non-strict comparison change.
+//
+// Previously (with strict >): no pixel was STRICTLY greater than its
+// neighbours, so everything suppressed to 0. That assumption no longer
+// holds after the >= fix, so this test's expected output changes from
+// "all zero" to "interior pixels keep their original magnitude (128),
+// border pixels are zero."
+TEST(NMSTest, UniformMagnitudeInteriorPixelsSurvive) {
     const int W = 10, H = 10;
     std::vector<uint8_t> mag(W * H, 128);
     std::vector<uint8_t> dir(W * H, 0);
@@ -12,8 +24,16 @@ TEST(NMSTest, UniformMagnitudeProducesAllZeros) {
 
     nms_u8(mag.data(), dir.data(), out.data(), W, H);
 
-    for (int i = 0; i < W * H; i++)
-        EXPECT_EQ(out[i], 0);
+    for (int r = 0; r < H; r++) {
+        for (int c = 0; c < W; c++) {
+            int i = r * W + c;
+            bool is_border = (r == 0 || r == H - 1 || c == 0 || c == W - 1);
+            if (is_border)
+                EXPECT_EQ(out[i], 0) << "border pixel (" << r << "," << c << ") should be 0";
+            else
+                EXPECT_EQ(out[i], 128) << "interior pixel (" << r << "," << c << ") should survive with >=";
+        }
+    }
 }
 
 // ── Test 2: All-black magnitude → all-black output ───────────────────────
@@ -89,8 +109,15 @@ TEST(NMSTest, NonMaximumIsSuppressed_Dir0) {
 }
 
 // ── Test 6: Vertical gradient (dir = 2, 90°) ─────────────────────────────
-// A uniform column of 200s → all have equal neighbours → all suppressed (plateau)
-TEST(NMSTest, VerticalPlateauSuppressed_Dir2) {
+// Rationale (UPDATED): with >=, a uniform column of equal-magnitude pixels
+// ties with its neighbours along the gradient direction rather than losing
+// to a strictly-greater one. A tie is now kept, so the entire plateau
+// survives NMS instead of being wiped to 0.
+//
+// Previously (with strict >): top=200, bottom=200, center=200 meant no
+// pixel was STRICTLY greater than its neighbours, so the whole column
+// suppressed to 0. That is no longer correct behavior after the >= fix.
+TEST(NMSTest, VerticalPlateauSurvives_Dir2) {
     const int W = 5, H = 5;
     std::vector<uint8_t> mag(W * H, 0);
     std::vector<uint8_t> dir(W * H, 2);
@@ -101,9 +128,9 @@ TEST(NMSTest, VerticalPlateauSuppressed_Dir2) {
 
     nms_u8(mag.data(), dir.data(), out.data(), W, H);
 
-    // Interior pixels of centre column: top=200, bottom=200 → NOT strictly >
+    // Interior pixels of centre column: top=200, bottom=200 → tie under >=, survives
     for (int r = 1; r < H - 1; r++)
-        EXPECT_EQ(out[r * W + 2], 0) << "plateau row " << r << " should be suppressed";
+        EXPECT_EQ(out[r * W + 2], 200) << "plateau row " << r << " should survive with >=";
 }
 
 // ── Test 7: Diagonal peak survives (dir = 1, 45°) ────────────────────────

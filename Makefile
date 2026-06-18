@@ -7,19 +7,21 @@ HOST_CXX   = g++
 RV_CXX     = riscv64-unknown-elf-g++
 # --- Flags ---
 HOST_FLAGS = -std=c++17 -Wall -Wextra -O2
-RV_FLAGS   = -std=c++17 -Wall -Wextra -march=rv64gcv -mabi=lp64d -O2
+RV_FLAGS   = -std=c++17 -Wall -Wextra -march=rv64gcv -mabi=lp64d -O0
 RV_FLAGS  += -static
 # --- Directories ---
 SRC_DIR    = src
 TEST_DIR   = tests
 RVV_DIR    = rvv
 BUILD_DIR  = build
-# --- Sources (exclude generator) ---
-SRCS       = $(filter-out $(SRC_DIR)/Generate_test_image.cpp, $(wildcard $(SRC_DIR)/*.cpp))
+# --- Sources (exclude generator AND the embedded-image entry point --
+#     riscv_main.cpp needs embedded_image.h and has its own main(), so it
+#     must never be compiled together with main.cpp) ---
+SRCS       = $(filter-out $(SRC_DIR)/Generate_test_image.cpp $(SRC_DIR)/riscv_main.cpp, $(wildcard $(SRC_DIR)/*.cpp))
 # --- QEMU ---
 QEMU       = qemu-riscv64
-VLEN       = 128
-QEMU_FLAGS = -cpu rv64,v=true,vlen=$(VLEN)
+VLEN       = 512
+QEMU_FLAGS = -cpu rv64,v=false,vlen=$(VLEN)
 # --- Targets ---
 HOST_BIN   = $(BUILD_DIR)/canny
 RV_BIN     = $(BUILD_DIR)/canny_rv
@@ -27,8 +29,22 @@ RV_BIN     = $(BUILD_DIR)/canny_rv
 GTEST_INC  = /usr/local/include
 GTEST_LIB  = /usr/local/lib
 # ============================================================
-.PHONY: all host canny_rv run clean test dirs
-all: dirs host canny_rv
+# Embedded image (works around no fopen() under QEMU on bare-metal RISC-V)
+# riscv_main.cpp #includes "embedded_image.h" -- generated here. It lands
+# in include/, so no extra -I flags are needed beyond what's already below.
+# Change EMBED_RAW/EMBED_W/EMBED_H to embed a different test image.
+# ============================================================
+EMBED_RAW    = test_683x691.raw  
+EMBED_W      = 683
+EMBED_H      = 691
+EMBED_NAME   = EMBEDDED_IMAGE
+EMBED_HDR    = include/embedded_image.h
+EMBED_SRCS   = $(filter-out $(SRC_DIR)/main.cpp $(SRC_DIR)/Generate_test_image.cpp, $(wildcard $(SRC_DIR)/*.cpp))
+RV_EMBED_BIN = $(BUILD_DIR)/canny_rv_embedded
+DECODE_DIR   = $(BUILD_DIR)/decoded
+QEMU_LOG     = $(BUILD_DIR)/qemu_output.log
+# ============================================================
+.PHONY: all host canny_rv run clean test dirs embed-header canny_rv_embedded run-embedded run-embedded-decode
 # Create build directory
 dirs:
 	mkdir -p $(BUILD_DIR)
@@ -45,6 +61,31 @@ canny_rv: dirs
 # Run on QEMU
 run: canny_rv
 	$(QEMU) $(QEMU_FLAGS) $(RV_BIN)
+# Regenerate embedded_image.h from EMBED_RAW.
+embed-header:
+	@echo "Embedding $(EMBED_RAW) ($(EMBED_W)x$(EMBED_H)) into $(EMBED_HDR)..."
+	python3 scripts/raw_to_header.py $(EMBED_RAW) $(EMBED_HDR) $(EMBED_W) $(EMBED_H) $(EMBED_NAME)
+
+# Cross-compile the embedded-image entry point (riscv_main.cpp). Depends on
+# embed-header so embedded_image.h always reflects EMBED_RAW/W/H first.
+canny_rv_embedded: dirs embed-header
+	@echo "Cross-compiling embedded-image build for RISC-V..."
+	$(RV_CXX) $(RV_FLAGS) -I include $(EMBED_SRCS) -o $(RV_EMBED_BIN)
+	@echo "Done: $(RV_EMBED_BIN)"
+
+# Plain run -- prints everything, including the hex dumps, to your terminal.
+run-embedded: canny_rv_embedded
+	$(QEMU) $(QEMU_FLAGS) $(RV_EMBED_BIN)
+
+# Same run, but captures stdout and decodes the hex dumps back into real
+# .raw files under build/decoded/ -- since save_image() can't actually
+# write files on this target, this is how you get viewable output (open
+# them with your existing visualize.py).
+run-embedded-decode: canny_rv_embedded
+	$(QEMU) $(QEMU_FLAGS) $(RV_EMBED_BIN) > $(QEMU_LOG)
+	python3 scripts/decoder_dump.py $(QEMU_LOG) $(DECODE_DIR)
+	@echo "Decoded .raw files are in $(DECODE_DIR)/"
+
 # Host-side GoogleTest
 test: dirs
 	@echo "--- Running Gaussian tests ---"

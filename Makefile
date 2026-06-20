@@ -7,7 +7,7 @@ HOST_CXX   = g++
 RV_CXX     = riscv64-unknown-elf-g++
 # --- Flags ---
 HOST_FLAGS = -std=c++17 -Wall -Wextra -O2
-RV_FLAGS   = -std=c++17 -Wall -Wextra -march=rv64gcv -mabi=lp64d -O0
+RV_FLAGS   = -std=c++17 -Wall -Wextra -march=rv64gcv -mabi=lp64d -O2
 RV_FLAGS  += -static
 # --- Directories ---
 SRC_DIR    = src
@@ -20,8 +20,8 @@ BUILD_DIR  = build
 SRCS       = $(filter-out $(SRC_DIR)/Generate_test_image.cpp $(SRC_DIR)/riscv_main.cpp, $(wildcard $(SRC_DIR)/*.cpp))
 # --- QEMU ---
 QEMU       = qemu-riscv64
-VLEN       = 512
-QEMU_FLAGS = -cpu rv64,v=false,vlen=$(VLEN)
+VLEN       = 128
+QEMU_FLAGS = -cpu rv64,v=true,vlen=$(VLEN)
 # --- Targets ---
 HOST_BIN   = $(BUILD_DIR)/canny
 RV_BIN     = $(BUILD_DIR)/canny_rv
@@ -34,16 +34,27 @@ GTEST_LIB  = /usr/local/lib
 # in include/, so no extra -I flags are needed beyond what's already below.
 # Change EMBED_RAW/EMBED_W/EMBED_H to embed a different test image.
 # ============================================================
-EMBED_RAW    = test_683x691.raw  
-EMBED_W      = 683
-EMBED_H      = 691
+EMBED_RAW    = test_136x136.raw  
+EMBED_W      = 136
+EMBED_H      = 136
 EMBED_NAME   = EMBEDDED_IMAGE
 EMBED_HDR    = include/embedded_image.h
-EMBED_SRCS   = $(filter-out $(SRC_DIR)/main.cpp $(SRC_DIR)/Generate_test_image.cpp, $(wildcard $(SRC_DIR)/*.cpp))
+EMBED_SRCS   = $(filter-out $(SRC_DIR)/main.cpp $(SRC_DIR)/riscv_main.cpp $(SRC_DIR)/Generate_test_image.cpp, $(wildcard $(SRC_DIR)/*.cpp))
 RV_EMBED_BIN = $(BUILD_DIR)/canny_rv_embedded
 DECODE_DIR   = $(BUILD_DIR)/decoded
 QEMU_LOG     = $(BUILD_DIR)/qemu_output.log
 # ============================================================
+RV_RVV_SRCS = $(filter-out \
+    $(SRC_DIR)/main.cpp \
+    $(SRC_DIR)/riscv_main.cpp \
+    $(SRC_DIR)/Generate_test_image.cpp, \
+    $(wildcard $(SRC_DIR)/*.cpp))
+
+RV_RVV_BIN = $(BUILD_DIR)/canny_rv_vectorized
+
+RVV_QEMU_LOG   = $(BUILD_DIR)/qemu_output_rvv.log
+RVV_DECODE_DIR = $(BUILD_DIR)/decoded_rvv
+
 .PHONY: all host canny_rv run clean test dirs embed-header canny_rv_embedded run-embedded run-embedded-decode
 # Create build directory
 dirs:
@@ -73,6 +84,13 @@ canny_rv_embedded: dirs embed-header
 	$(RV_CXX) $(RV_FLAGS) -I include $(EMBED_SRCS) -o $(RV_EMBED_BIN)
 	@echo "Done: $(RV_EMBED_BIN)"
 
+# Full pipeline with RVV Gaussian + RVV magnitude
+canny_rv_vectorized: dirs embed-header
+	@echo "Cross-compiling vectorized pipeline..."
+	$(RV_CXX) $(RV_FLAGS) -I include $(RV_RVV_SRCS) \
+		-o $(RV_RVV_BIN)
+	@echo "Done: $(RV_RVV_BIN)"
+
 # Plain run -- prints everything, including the hex dumps, to your terminal.
 run-embedded: canny_rv_embedded
 	$(QEMU) $(QEMU_FLAGS) $(RV_EMBED_BIN)
@@ -86,6 +104,14 @@ run-embedded-decode: canny_rv_embedded
 	python3 scripts/decoder_dump.py $(QEMU_LOG) $(DECODE_DIR)
 	@echo "Decoded .raw files are in $(DECODE_DIR)/"
 
+run-vectorized: canny_rv_vectorized
+	$(QEMU) $(QEMU_FLAGS) $(RV_RVV_BIN)
+
+run-vectorized-decode: canny_rv_vectorized
+	mkdir -p $(RVV_DECODE_DIR)
+	$(QEMU) $(QEMU_FLAGS) $(RV_RVV_BIN) > $(RVV_QEMU_LOG)
+	python3 scripts/decoder_dump.py $(RVV_QEMU_LOG) $(RVV_DECODE_DIR)
+	@echo "Decoded .raw files are in $(RVV_DECODE_DIR)/"
 # Host-side GoogleTest
 test: dirs
 	@echo "--- Running Gaussian tests ---"
@@ -130,6 +156,35 @@ test: dirs
 		-L$(GTEST_LIB) -lgtest -lgtest_main -lpthread \
 		-o $(BUILD_DIR)/test_hysteresis
 	./$(BUILD_DIR)/test_hysteresis
+
+# RVV Gaussian correctness test
+TEST_GAUSS_VEC_BIN = $(BUILD_DIR)/test_gaussian_vectorized_rv
+
+test_gaussian_vectorized: dirs
+	@echo "--- Building vectorized Gaussian test ---"
+	$(RV_CXX) $(RV_FLAGS) -I include \
+		tests/test_gaussian_vectorized.cpp \
+		src/gaussian.cpp \
+		src/gaussian_vectorized.cpp \
+		-o $(TEST_GAUSS_VEC_BIN)
+
+	@echo "--- Running under QEMU ---"
+	$(QEMU) $(QEMU_FLAGS) $(TEST_GAUSS_VEC_BIN)
+
+# RVV Magnitude correctness test
+TEST_MAG_VEC_BIN = $(BUILD_DIR)/test_magnitude_vectorized_rv
+
+test_magnitude_vectorized: dirs
+	@echo "--- Building vectorized magnitude test ---"
+	$(RV_CXX) $(RV_FLAGS) -I include \
+		tests/test_magnitude_vectorized.cpp \
+		src/magnitude.cpp \
+		src/magnitude_vectorized.cpp \
+		-o $(TEST_MAG_VEC_BIN)
+
+	@echo "--- Running under QEMU ---"
+	$(QEMU) $(QEMU_FLAGS) $(TEST_MAG_VEC_BIN)
+
 
 # Clean
 clean:

@@ -1,0 +1,35 @@
+Embedded image : 100x75 (7500 bytes)
+Timing method  : clock_gettime
+
+=== Running L1 Pipeline (|Gx| + |Gy|) ===
+
+=== Pipeline: L1  |Gx| + |Gy| ===
+Timing each stage over 100 iterations (using clock_gettime):
+ Stage 1: Gaussian         : 230859.9 clock_gettime (avg over 100 runs)
+ Stage 2a: Sobel           : 175138.7 clock_gettime (avg over 100 runs)
+ Stage 2b: Magnitude L1    : 20698.2 clock_gettime (avg over 100 runs)
+ Stage 2c: Direction       : 14416.8 clock_gettime (avg over 100 runs)
+ Stage 3: NMS              : 9433.3 clock_gettime (avg over 100 runs)
+ Stage 4: Double Threshold : 5559.7 clock_gettime (avg over 100 runs)
+ Stage 5: Hysteresis       : 18399.4 clock_gettime (avg over 100 runs)
+
+=== Running L2 Pipeline (sqrt(Gx² + Gy²)) ===
+
+=== Pipeline: L2  sqrt(Gx^2 + Gy^2) ===
+Timing each stage over 100 iterations (using clock_gettime):
+ Stage 1: Gaussian         : 221152.6 clock_gettime (avg over 100 runs)
+ Stage 2a: Sobel           : 175925.2 clock_gettime (avg over 100 runs)
+ Stage 2b: Magnitude L2    : 16964.9 clock_gettime (avg over 100 runs)
+ Stage 2c: Direction       : 14984.8 clock_gettime (avg over 100 runs)
+ Stage 3: NMS              : 9983.2 clock_gettime (avg over 100 runs)
+ Stage 4: Double Threshold : 5587.5 clock_gettime (avg over 100 runs)
+ Stage 5: Hysteresis       : 21389.9 clock_gettime (avg over 100 runs)
+
+=== Pipeline Runtime Totals (clock_gettime) ===
+  L1 total time   : 49.959 ms
+  L1 single pass  : 0.500 ms
+
+  L2 total time   : 48.940 ms
+  L2 single pass  : 0.489 ms
+
+ Benchmark completed successfully.

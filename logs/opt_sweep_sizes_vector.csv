@@ -1,0 +1,7 @@
+opt_level,binary_size_bytes
+O0,415856
+O1,411312
+O2,411568
+O3,414968
+Os,411064
+Ofast,414976

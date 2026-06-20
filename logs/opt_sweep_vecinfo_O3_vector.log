@@ -1,0 +1,6 @@
+src/double_threshold.cpp:14:23: optimized: loop vectorized using variable length vectors
+src/double_threshold.cpp:14:23: optimized:  loop versioned for vectorization because of possible aliasing
+src/hysteresis.cpp:48:23: optimized: loop vectorized using variable length vectors
+src/magnitude.cpp:48:23: optimized: loop vectorized using variable length vectors
+src/magnitude.cpp:38:23: optimized: loop vectorized using variable length vectors
+src/sobel.cpp:25:37: optimized: loop vectorized using variable length vectors

@@ -6,7 +6,7 @@
 HOST_CXX   = g++
 RV_CXX     = riscv64-unknown-elf-g++
 # --- Flags ---
-HOST_FLAGS = -std=c++17 -Wall -Wextra -O2
+HOST_FLAGS = -std=c++17 -Wall -Wextra -O0
 RV_FLAGS   = -std=c++17 -Wall -Wextra -march=rv64gcv -mabi=lp64d -O0
 RV_FLAGS  += -static
 # --- Directories ---
@@ -34,9 +34,9 @@ GTEST_LIB  = /usr/local/lib
 # in include/, so no extra -I flags are needed beyond what's already below.
 # Change EMBED_RAW/EMBED_W/EMBED_H to embed a different test image.
 # ============================================================
-EMBED_RAW    = test_683x691.raw  
-EMBED_W      = 683
-EMBED_H      = 691
+EMBED_RAW    = test_100x75.raw  
+EMBED_W      = 100
+EMBED_H      = 75
 EMBED_NAME   = EMBEDDED_IMAGE
 EMBED_HDR    = include/embedded_image.h
 EMBED_SRCS   = $(filter-out $(SRC_DIR)/main.cpp $(SRC_DIR)/Generate_test_image.cpp, $(wildcard $(SRC_DIR)/*.cpp))
@@ -72,7 +72,6 @@ canny_rv_embedded: dirs embed-header
 	@echo "Cross-compiling embedded-image build for RISC-V..."
 	$(RV_CXX) $(RV_FLAGS) -I include $(EMBED_SRCS) -o $(RV_EMBED_BIN)
 	@echo "Done: $(RV_EMBED_BIN)"
-
 # Plain run -- prints everything, including the hex dumps, to your terminal.
 run-embedded: canny_rv_embedded
 	$(QEMU) $(QEMU_FLAGS) $(RV_EMBED_BIN)

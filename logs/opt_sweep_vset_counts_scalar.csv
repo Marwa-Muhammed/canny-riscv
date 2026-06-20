@@ -1,0 +1,7 @@
+opt_level,vset_instruction_count
+O0,0
+O1,0
+O2,0
+O3,0
+Os,0
+Ofast,0

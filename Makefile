@@ -6,8 +6,8 @@
 HOST_CXX   = g++
 RV_CXX     = riscv64-unknown-elf-g++
 # --- Flags ---
-HOST_FLAGS = -std=c++17 -Wall -Wextra -O2
-RV_FLAGS   = -std=c++17 -Wall -Wextra -march=rv64gcv -mabi=lp64d -O2
+HOST_FLAGS = -std=c++17 -Wall -Wextra -O0
+RV_FLAGS   = -std=c++17 -Wall -Wextra -march=rv64gcv -mabi=lp64d -O0
 RV_FLAGS  += -static
 # --- Directories ---
 SRC_DIR    = src
@@ -34,9 +34,9 @@ GTEST_LIB  = /usr/local/lib
 # in include/, so no extra -I flags are needed beyond what's already below.
 # Change EMBED_RAW/EMBED_W/EMBED_H to embed a different test image.
 # ============================================================
-EMBED_RAW    = test_136x136.raw  
-EMBED_W      = 136
-EMBED_H      = 136
+EMBED_RAW    = test_100x75.raw  
+EMBED_W      = 100
+EMBED_H      = 75
 EMBED_NAME   = EMBEDDED_IMAGE
 EMBED_HDR    = include/embedded_image.h
 EMBED_SRCS   = $(filter-out $(SRC_DIR)/main.cpp $(SRC_DIR)/riscv_main.cpp $(SRC_DIR)/Generate_test_image.cpp, $(wildcard $(SRC_DIR)/*.cpp))
@@ -116,43 +116,43 @@ run-vectorized-decode: canny_rv_vectorized
 test: dirs
 	@echo "--- Running Gaussian tests ---"
 	$(HOST_CXX) $(HOST_FLAGS) -I include -I$(GTEST_INC) \
-		tests/test_gaussian.cpp src/gaussian.cpp \
+		tests/gtest_gaussian.cpp src/gaussian.cpp \
 		-L$(GTEST_LIB) -lgtest -lgtest_main -lpthread \
 		-o $(BUILD_DIR)/test_gaussian
 	./$(BUILD_DIR)/test_gaussian
 	@echo "--- Running Sobel tests ---"
 	$(HOST_CXX) $(HOST_FLAGS) -I include -I$(GTEST_INC) \
-		tests/test_sobel_gtest.cpp src/sobel.cpp \
+		tests/gtest_sobel.cpp src/sobel.cpp \
 		-L$(GTEST_LIB) -lgtest -lgtest_main -lpthread \
 		-o $(BUILD_DIR)/test_sobel
 	./$(BUILD_DIR)/test_sobel
 	@echo "--- Running Magnitude tests ---"
 	$(HOST_CXX) $(HOST_FLAGS) -I include -I$(GTEST_INC) \
-		tests/test_magnitude.cpp src/magnitude.cpp \
+		tests/gtest_magnitude.cpp src/magnitude.cpp \
 		-L$(GTEST_LIB) -lgtest -lgtest_main -lpthread \
 		-o $(BUILD_DIR)/test_magnitude
 	./$(BUILD_DIR)/test_magnitude
 	@echo "--- Running Direction tests ---"
 	$(HOST_CXX) $(HOST_FLAGS) -I include -I$(GTEST_INC) \
-		tests/test_direction.cpp src/direction.cpp \
+		tests/gtest_direction.cpp src/direction.cpp src/sobel.cpp \
 		-L$(GTEST_LIB) -lgtest -lgtest_main -lpthread \
 		-o $(BUILD_DIR)/test_direction
 	./$(BUILD_DIR)/test_direction
 	@echo "--- Running NMS tests ---"
 	$(HOST_CXX) $(HOST_FLAGS) -I include -I$(GTEST_INC) \
-		tests/test_nms.cpp src/nms.cpp src/sobel.cpp src/gaussian.cpp \
+		tests/gtest_nms.cpp src/nms.cpp src/sobel.cpp src/gaussian.cpp \
 		-L$(GTEST_LIB) -lgtest -lgtest_main -lpthread \
 		-o $(BUILD_DIR)/test_nms
 	./$(BUILD_DIR)/test_nms
 	@echo "--- Running Double Threshold tests ---"
 	$(HOST_CXX) $(HOST_FLAGS) -I include -I$(GTEST_INC) \
-		tests/test_double_threshold.cpp src/double_threshold.cpp \
+		tests/gtest_double_threshold.cpp src/double_threshold.cpp \
 		-L$(GTEST_LIB) -lgtest -lgtest_main -lpthread \
 		-o $(BUILD_DIR)/test_double_threshold
 	./$(BUILD_DIR)/test_double_threshold
 	@echo "--- Running Hysteresis tests ---"
 	$(HOST_CXX) $(HOST_FLAGS) -I include -I$(GTEST_INC) \
-		tests/test_hysteresis.cpp src/hysteresis.cpp \
+		tests/gtest_hysteresis.cpp src/hysteresis.cpp \
 		-L$(GTEST_LIB) -lgtest -lgtest_main -lpthread \
 		-o $(BUILD_DIR)/test_hysteresis
 	./$(BUILD_DIR)/test_hysteresis

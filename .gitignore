@@ -1,0 +1,16 @@
+*.o
+*.elf
+*.a
+build/
+bin/
+*.raw
+test_output/
+.vscode/
+.DS_Store
+__pycache__/
+
+generate_test
+venv/
+*.raw
+# Ignore loose png files in root
+/*.png

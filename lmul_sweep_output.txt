@@ -1,0 +1,74 @@
+
+================================================================
+  GAUSS_LMUL = 1  (VLEN=128)
+================================================================
+
+--- Spill check (vector loads/stores addressing sp/s0 in /home/sararadwan/canny-riscv/build/lmul_sweep/gaussian_lmul1.s) ---
+    Count: 0
+
+Embedded image: 136x136 (18496 bytes)
+
+=== RVV vs SCALAR STAGE TIMING (clock_gettime, values in Milliseconds) ===
+Stage                  |       RVV (ms) |    Scalar (ms)
+-----------------------+----------------+----------------+-----------
+Gaussian blur          |          2.168 |          1.727 
+Sobel gradient         |          1.368 |          1.312 
+Magnitude              |          0.867 |          0.087 
+Direction              |          0.194 |          0.188 
+Non-max suppression    |          0.080 |          0.075 
+Double threshold       |          0.031 |          0.031 
+Hysteresis             |          0.445 |          0.333 
+-----------------------+----------------+----------------+-----------
+TOTAL                  |          5.153 |          3.753 
+===========================================================================
+
+================================================================
+  GAUSS_LMUL = 2  (VLEN=128)
+================================================================
+
+--- Spill check (vector loads/stores addressing sp/s0 in /home/sararadwan/canny-riscv/build/lmul_sweep/gaussian_lmul2.s) ---
+    Count: 0
+
+Embedded image: 136x136 (18496 bytes)
+
+=== RVV vs SCALAR STAGE TIMING (clock_gettime, values in Milliseconds) ===
+Stage                  |       RVV (ms) |    Scalar (ms)
+-----------------------+----------------+----------------+-----------
+Gaussian blur          |          1.508 |          1.728 
+Sobel gradient         |          1.336 |          1.340 
+Magnitude              |          0.841 |          0.091 
+Direction              |          0.178 |          0.183 
+Non-max suppression    |          0.088 |          0.078 
+Double threshold       |          0.031 |          0.033 
+Hysteresis             |          0.428 |          0.317 
+-----------------------+----------------+----------------+-----------
+TOTAL                  |          4.410 |          3.768 
+===========================================================================
+
+================================================================
+  GAUSS_LMUL = 4  (VLEN=128)
+================================================================
+
+--- Spill check (vector loads/stores addressing sp/s0 in /home/sararadwan/canny-riscv/build/lmul_sweep/gaussian_lmul4.s) ---
+    Count: 0
+
+Embedded image: 136x136 (18496 bytes)
+
+=== RVV vs SCALAR STAGE TIMING (clock_gettime, values in Milliseconds) ===
+Stage                  |       RVV (ms) |    Scalar (ms)
+-----------------------+----------------+----------------+-----------
+Gaussian blur          |          0.996 |          1.785 
+Sobel gradient         |          1.320 |          1.386 
+Magnitude              |          0.862 |          0.088 
+Direction              |          0.186 |          0.188 
+Non-max suppression    |          0.083 |          0.084 
+Double threshold       |          0.035 |          0.030 
+Hysteresis             |          0.411 |          0.340 
+-----------------------+----------------+----------------+-----------
+TOTAL                  |          3.893 |          3.900 
+===========================================================================
+
+================================================================
+  LMUL sweep complete. Assembly files in /home/sararadwan/canny-riscv/build/lmul_sweep/ for manual
+  inspection if you want to see the actual spill instructions.
+================================================================
